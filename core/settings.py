@@ -155,7 +155,6 @@ TENANT_APPS = [
     'rest_framework_simplejwt',  # Gestion des tokens JWT pour l'authentification
     
     # Ajoutez ici d'autres applications spécifiques aux tenants
-    'apps.authentication',
     'apps.clients',
     'apps.rendez_vous',
     'apps.caisse',
@@ -182,7 +181,7 @@ SHARED_APPS = [
 
     'tenants',  # Application pour gérer les tenants et leurs domaines
     'public',  # Application pour gérer les fonctionnalités publiques
-
+    'apps.authentication',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
@@ -193,3 +192,6 @@ INSTALLED_APPS = list(SHARED_APPS) + [
 DATABASE_ROUTERS = (
     'django_tenants.routers.TenantSyncRouter',
 )
+
+# Custom User Model
+AUTH_USER_MODEL = 'authentication.Utilisateur'

@@ -19,6 +19,7 @@ class Tenant(TenantMixin):
         ('trimestriel', 'Abonnement trimestriel'),
         ('semestriel', 'Abonnement semestriel'),
         ('annuel', 'Abonnement annuel'),
+        ('illimite', 'Abonnement illimité'),
     ]
     type_licence = models.CharField(
         max_length=30, 
