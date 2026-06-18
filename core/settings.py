@@ -155,9 +155,17 @@ TENANT_APPS = [
     'rest_framework_simplejwt',  # Gestion des tokens JWT pour l'authentification
     
     # Ajoutez ici d'autres applications spécifiques aux tenants
-    'tenants',  # Application pour gérer les tenants et leurs domaines
-    'public',  # Application pour gérer les fonctionnalités publiques
-
+    'apps.authentication',
+    'apps.clients',
+    'apps.rendez_vous',
+    'apps.caisse',
+    'apps.ardoises',
+    'apps.stock',
+    'apps.produits',
+    'apps.commandes',
+    'apps.personnel',
+    'apps.coupons',
+    'apps.rapports',
 ]
 
  # Apps partagées entre tous les tenants (niveau global)
