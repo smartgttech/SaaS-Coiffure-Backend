@@ -178,6 +178,7 @@ SHARED_APPS = [
     'django.contrib.staticfiles',  # Gestion des fichiers statiques
     'rest_framework',  # Framework pour construire des APIs RESTful
     'rest_framework_simplejwt',  # Gestion des tokens JWT pour l'authentification
+    'drf_spectacular',  # Documentation automatique des APIs
 
     'tenants',  # Application pour gérer les tenants et leurs domaines
     'public',  # Application pour gérer les fonctionnalités publiques
@@ -195,3 +196,15 @@ DATABASE_ROUTERS = (
 
 # Custom User Model
 AUTH_USER_MODEL = 'authentication.Utilisateur'
+
+# Rest Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Spectacular Settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'HosJos API',
+    'DESCRIPTION': 'API de la plateforme SaaS de gestion pour salons de coiffure',
+    'VERSION': '1.0.0',
+}
