@@ -14,6 +14,8 @@ class AuthService:
         self.utilisateur_repo = UtilisateurRepository()
         self.personnel_repo = PersonnalRepository()
 
+
+    # Service d'inscription
     def inscrire_personnel(self, email, password, nom, prenom, date_entree, role='employe', specialite=None):
         """
         Crée un utilisateur + son profil Personnel associé
@@ -32,6 +34,7 @@ class AuthService:
         )
         return utilisateur, personnel
     
+    # Service de connexion
     def connecter(self, email, password):
         """
         Verifie les identifiants et retourne les tokens JWT si valides
@@ -89,4 +92,22 @@ class AuthService:
                 'email': utilisateur.email,
                 'role': utilisateur.role,
             }
+        }
+    
+    # Service d'obtention du profil personnel
+    def obtenir_profil(self, utilisateur):
+        """
+        Retourne les informations du profil de l'utilisateur connecté,
+        en allant chercher son profil personnel si disponible.
+        """
+
+        personnel = self.personnel_repo.par_utilisateur(utilisateur)
+
+        return { 
+            'id': utilisateur.id,
+            'email': utilisateur.email,
+            'role': utilisateur.role,
+            'tenant_id': utilisateur.tenant_id,
+            'nom': personnel.nom if personnel else None,
+            'prenom': personnel.prenom if personnel else None,
         }

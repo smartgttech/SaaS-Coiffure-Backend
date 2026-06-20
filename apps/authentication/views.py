@@ -71,3 +71,15 @@ class LogoutView(APIView):
             return success(message="Déconnexion réussie")
         except Exception:
             return error(message="Token invalide ou déjà expiré", status_code=400)
+        
+
+# ===============================================================
+# 4. PROFIL PERSONNEL
+# ===============================================================
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AuthService()
+        profil = service.obtenir_profil(request.user)
+        return success(data=profil, message="Profil récupéré")
