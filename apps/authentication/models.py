@@ -54,6 +54,8 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    tentatives_echouees = models.IntegerField(default=0)
+    bloque_jusqu_a = models.DateTimeField(null=True, blank=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
     objects = UtilisateurManager()
