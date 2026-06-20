@@ -179,6 +179,7 @@ SHARED_APPS = [
     'rest_framework',  # Framework pour construire des APIs RESTful
     'rest_framework_simplejwt',  # Gestion des tokens JWT pour l'authentification
     'drf_spectacular',  # Documentation automatique des APIs
+    'rest_framework_simplejwt.token_blacklist',  # ← Blacklist des tokens
 
     'tenants',  # Application pour gérer les tenants et leurs domaines
     'public',  # Application pour gérer les fonctionnalités publiques
@@ -207,4 +208,14 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'HosJos API',
     'DESCRIPTION': 'API de la plateforme SaaS de gestion pour salons de coiffure',
     'VERSION': '1.0.0',
+}
+
+# JWT configuration
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=2), # Passer à 8heures pour correspondre au CDC
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }

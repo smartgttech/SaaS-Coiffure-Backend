@@ -21,3 +21,6 @@ class InscriptionPersonnelSerializer(serializers.Serializer):
     )
     date_entree = serializers.DateField()
     specialite = serializers.CharField(max_length=150, required=False, allow_null=True)
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
