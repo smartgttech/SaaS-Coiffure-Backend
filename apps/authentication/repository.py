@@ -46,3 +46,9 @@ class PersonnalRepository(BaseRepository):
             return Personnel.objects.get(utilisateur=utilisateur)
         except Personnel.DoesNotExist:
             return None
+        
+    def par_id(self, personnel_id):
+        try:
+            return Personnel.objects.get(id=personnel_id, tenant=self.tenant)
+        except Personnel.DoesNotExist:
+            return None
