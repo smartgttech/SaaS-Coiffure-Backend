@@ -4,8 +4,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .repository import UtilisateurRepository, PersonnalRepository
 from datetime import timedelta
 from django.utils import timezone
+from apps.journal.services import JournalService
 
-MAX_TENTATIVES = 3
+MAX_TENTATIVES = 5
 DUREE_BLOCAGE_MINUTES = 15
 
 class AuthService:
@@ -13,6 +14,7 @@ class AuthService:
     def __init__(self):
         self.utilisateur_repo = UtilisateurRepository()
         self.personnel_repo = PersonnalRepository()
+        self.journal = JournalService()
 
 
     # Service d'inscription
@@ -111,3 +113,61 @@ class AuthService:
             'nom': personnel.nom if personnel else None,
             'prenom': personnel.prenom if personnel else None,
         }
+    
+
+class PersonnelService:
+
+    def __init__(self):
+        self.personnel_repo = PersonnalRepository()
+        self.utilisateur_repo = UtilisateurRepository()
+        self.journal = JournalService()
+
+    def lister(self):
+        return self.personnel_repo.liste_active()
+
+    def obtenir(self, personnel_id):
+        personnel = self.personnel_repo.par_id(personnel_id)
+        if personnel is None:
+            raise ValueError("Membre du personnel introuvable.")
+        return personnel
+
+    def modifier(self, personnel_id, data, utilisateur=None):
+        personnel = self.obtenir(personnel_id)
+
+        details_avant = {
+            champ: str(getattr(personnel, champ, None))
+            for champ in data.keys()
+        }
+
+        personnel_modifie = self.personnel_repo.modifier(personnel, data)
+
+        details_apres = {k: str(v) for k, v in data.items()}
+
+        self.journal.enregistrer(
+            utilisateur=utilisateur,
+            type_action='modification_personnel',
+            ressource='Personnel',
+            ressource_id=personnel.id,
+            details_avant=details_avant,
+            details_apres=details_apres
+        )
+        return personnel_modifie
+
+    def desactiver(self, personnel_id, utilisateur=None):
+        personnel = self.obtenir(personnel_id)
+
+        # Un utilisateur ne peut pas désactiver son propre compte
+        if utilisateur and personnel.utilisateur_id == utilisateur.id:
+            raise ValueError("Vous ne pouvez pas désactiver votre propre compte.")
+
+        # Désactiver aussi le compte utilisateur lié
+        self.utilisateur_repo.desactiver(personnel.utilisateur)
+        personnel_desactive = self.personnel_repo.desactiver(personnel)
+
+        self.journal.enregistrer(
+            utilisateur=utilisateur,
+            type_action='desactivation_personnel',
+            ressource='Personnel',
+            ressource_id=personnel.id
+        )
+        return personnel_desactive

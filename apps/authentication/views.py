@@ -1,11 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import LoginSerializer, InscriptionPersonnelSerializer, LogoutSerializer, UtilisateurMeSerializer
-from .services import AuthService
+from .serializers import (
+    LoginSerializer, InscriptionPersonnelSerializer, 
+    LogoutSerializer, UtilisateurMeSerializer,
+    PersonnelSerializer, PersonnelUpdateSerializer
+)
+from .services import AuthService, PersonnelService
 from drf_spectacular.utils import extend_schema
-from core.responses import success, error, created
-from core.permissions import EstDuTenantCourant, EstProprietaire
+from core.responses import success, error, created, not_found
+from core.permissions import EstDuTenantCourant, EstProprietaire, EstProprietaireOuEmploye
 
 # Endpoints de cette app
 # ==================================================
@@ -85,3 +89,61 @@ class MeView(APIView):
         service = AuthService()
         profil = service.obtenir_profil(request.user)
         return success(data=profil, message="Profil récupéré")
+    
+
+class PersonnelListView(APIView):
+    permission_classes = [IsAuthenticated, EstDuTenantCourant, EstProprietaire]
+
+    @extend_schema(responses=PersonnelSerializer(many=True))
+    def get(self, request):
+        service = PersonnelService()
+        personnel = service.lister()
+        return success(
+            data=PersonnelSerializer(personnel, many=True).data,
+            message="Liste du personnel"
+        )
+
+
+class PersonnelDetailView(APIView):
+    permission_classes = [IsAuthenticated, EstDuTenantCourant, EstProprietaire]
+
+    @extend_schema(responses=PersonnelSerializer)
+    def get(self, request, personnel_id):
+        service = PersonnelService()
+        try:
+            personnel = service.obtenir(personnel_id)
+            return success(
+                data=PersonnelSerializer(personnel).data,
+                message="Membre du personnel trouvé"
+            )
+        except ValueError as e:
+            return not_found(str(e))
+
+    @extend_schema(request=PersonnelUpdateSerializer, responses=PersonnelSerializer)
+    def patch(self, request, personnel_id):
+        serializer = PersonnelUpdateSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return error(message="Données invalides", errors=serializer.errors)
+
+        service = PersonnelService()
+        try:
+            personnel = service.modifier(
+                personnel_id,
+                serializer.validated_data,
+                utilisateur=request.user
+            )
+            return success(
+                data=PersonnelSerializer(personnel).data,
+                message="Personnel mis à jour"
+            )
+        except ValueError as e:
+            return not_found(str(e))
+
+    @extend_schema(responses=None)
+    def delete(self, request, personnel_id):
+        service = PersonnelService()
+        try:
+            service.desactiver(personnel_id, utilisateur=request.user)
+            return success(message="Compte désactivé")
+        except ValueError as e:
+            return not_found(str(e))

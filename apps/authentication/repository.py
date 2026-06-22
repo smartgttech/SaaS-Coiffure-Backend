@@ -27,9 +27,19 @@ class UtilisateurRepository(BaseRepository):
         )
         return utilisateur
 
+    def desactiver(self, utilisateur):
+        utilisateur.is_active = False
+        utilisateur.save()
+        return utilisateur
 
 
 class PersonnalRepository(BaseRepository):
+
+    def liste_active(self):
+        return Personnel.objects.filter(
+            tenant=self.tenant,
+            actif=True
+        ).select_related('utilisateur')
 
     def creer(self, utilisateur, nom, prenom, date_entree, specialite=None):
         return Personnel.objects.create(
@@ -49,6 +59,17 @@ class PersonnalRepository(BaseRepository):
         
     def par_id(self, personnel_id):
         try:
-            return Personnel.objects.get(id=personnel_id, tenant=self.tenant)
+            return Personnel.objects.get(id=personnel_id, tenant=self.tenant, actif=True)
         except Personnel.DoesNotExist:
             return None
+
+    def modifier(self, personnel, data):
+        for champ, valeur in data.items():
+            setattr(personnel, champ, valeur)
+        personnel.save()
+        return personnel
+
+    def desactiver(self, personnel):
+        personnel.actif = False
+        personnel.save()
+        return personnel
