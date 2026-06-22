@@ -25,4 +25,5 @@ urlpatterns = [
     path('api/auth/', include('apps.authentication.urls')),
     path('api/clients/', include('apps.clients.urls')),
     path('api/rendez_vous/', include('apps.rendez_vous.urls')),
+    path('api/caisse/', include('apps.caisse.urls')),
 ]
