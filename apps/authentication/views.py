@@ -10,6 +10,8 @@ from .services import AuthService, PersonnelService
 from drf_spectacular.utils import extend_schema
 from core.responses import success, error, created, not_found
 from core.permissions import EstDuTenantCourant, EstProprietaire, EstProprietaireOuEmploye
+from tenants.services import TenantService
+from tenants.serializers import TenantPublicSerializer, TenantUpdateSerializer
 
 # Endpoints de cette app
 # ==================================================
@@ -104,6 +106,9 @@ class PersonnelListView(APIView):
         )
 
 
+# ==================================================
+# 5. DETAIL D'UN MEMBRE DU PERSONNEL
+# =================================================
 class PersonnelDetailView(APIView):
     permission_classes = [IsAuthenticated, EstDuTenantCourant, EstProprietaire]
 
@@ -147,3 +152,38 @@ class PersonnelDetailView(APIView):
             return success(message="Compte désactivé")
         except ValueError as e:
             return not_found(str(e))
+        
+
+# =============================================================
+# 6. MON SALON
+# =============================================================
+class MonSalonView(APIView):
+    permission_classes = [IsAuthenticated, EstDuTenantCourant, EstProprietaire]
+
+    @extend_schema(responses=TenantPublicSerializer)
+    def get(self, request):
+        service = TenantService()
+        try:
+            tenant = service.obtenir_courant()
+            return success(
+                data=TenantPublicSerializer(tenant).data,
+                message="Informations du salon"
+            )
+        except ValueError as e:
+            return error(message=str(e), status_code=404)
+
+    @extend_schema(request=TenantUpdateSerializer, responses=TenantPublicSerializer)
+    def patch(self, request):
+        serializer = TenantUpdateSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return error(message="Données invalides", errors=serializer.errors)
+
+        service = TenantService()
+        try:
+            tenant = service.modifier(serializer.validated_data)
+            return success(
+                data=TenantPublicSerializer(tenant).data,
+                message="Informations du salon mises à jour"
+            )
+        except ValueError as e:
+            return error(message=str(e), status_code=404)
