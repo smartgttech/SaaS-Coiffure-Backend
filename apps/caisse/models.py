@@ -71,6 +71,8 @@ class Paiement(models.Model):
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
 
+    reference = models.CharField(max_length=20, unique=True, blank=True)
+
     class Meta:
         verbose_name = "Paiement"
         verbose_name_plural = "Paiements"

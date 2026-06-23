@@ -2,6 +2,7 @@ from apps.journal.services import JournalService
 from apps.clients.repository import ClienteRepository
 from apps.rendez_vous.repository import RendezVousRepository
 from .repository import PaiementRepository
+from django.utils import timezone
 # from apps.caisse.models import Paiement
 
 # Logique métier de cette app
@@ -94,6 +95,7 @@ class PaiementService:
             'statut': statut,
             'activite': activite,
             'canal': canal,
+            'reference': self.repo.generer_reference(),
         }
 
         paiement = self.repo.creer(paiement_data)

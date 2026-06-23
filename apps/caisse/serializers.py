@@ -13,11 +13,11 @@ class PaiementSerializer(serializers.ModelSerializer):
             'rendez_vous', 'commande',
             'montant_total', 'montant_verse', 'solde_restant',
             'mode_paiement', 'statut', 'activite', 'canal',
-            'date', 'date_creation', 'date_modification'
+            'date', 'date_creation', 'date_modification', 'reference',
         ]
         read_only_fields = [
             'id', 'solde_restant', 'statut', 'activite', 'canal',
-            'date', 'date_creation', 'date_modification'
+            'date', 'date_creation', 'date_modification','reference',
         ]
 
 

@@ -56,3 +56,12 @@ class PaiementRepository(BaseRepository):
             tenant=self.tenant,
             date__date=timezone.now().date()
         )
+    
+    def generer_reference(self):
+        from django.utils import timezone
+        annee = timezone.now().year
+        compteur = Paiement.objects.filter(
+            tenant=self.tenant,
+            date__year=annee
+        ).count() + 1
+        return f"REC-{annee}-{compteur:04d}"
