@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 # Serializers de cette app
 from rest_framework import serializers
@@ -20,12 +21,14 @@ class CouponSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'date_creation', 'date_modification']
 
+    @extend_schema_field(serializers.BooleanField())
     def get_est_expire(self, obj):
         from django.utils import timezone
         if obj.date_expiration:
             return obj.date_expiration < timezone.now().date()
         return False
 
+    @extend_schema_field(serializers.IntegerField())
     def get_nombre_utilisations(self, obj):
         return obj.utilisations.count()
 

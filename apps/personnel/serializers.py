@@ -9,8 +9,8 @@ class TransactionPerformanceSerializer(serializers.ModelSerializer):
         fields = ['id', 'type', 'points', 'motif', 'date']
 
 
-class PointsActionSerializer(serializers.Serializer):
-    points = serializers.IntegerField(min_value=1)
+class PerformancePointsSerializer(serializers.Serializer):
+    points = serializers.IntegerField(min_value=0)
     motif = serializers.CharField(max_length=255)
 
 

@@ -4,7 +4,7 @@ from core.responses import success, error, not_found
 from core.permissions import EstDuTenantCourant, EstProprietaire
 from .services import PerformanceService
 from .serializers import (
-    TransactionPerformanceSerializer, PointsActionSerializer,
+    TransactionPerformanceSerializer, PerformancePointsSerializer,
     RecapitulatifPeriodeSerializer, RecapitulatifPersonnelSerializer
 )
 
@@ -12,9 +12,9 @@ from .serializers import (
 class PersonnelPointsAjouterView(APIView):
     permission_classes = [EstDuTenantCourant, EstProprietaire]
 
-    @extend_schema(request=PointsActionSerializer, responses=None)
+    @extend_schema(request=PerformancePointsSerializer, responses=None)
     def post(self, request, personnel_id):
-        serializer = PointsActionSerializer(data=request.data)
+        serializer = PerformancePointsSerializer(data=request.data)
         if not serializer.is_valid():
             return error(message="Données invalides", errors=serializer.errors)
 
@@ -37,9 +37,9 @@ class PersonnelPointsAjouterView(APIView):
 class PersonnelPointsRetirerView(APIView):
     permission_classes = [EstDuTenantCourant, EstProprietaire]
 
-    @extend_schema(request=PointsActionSerializer, responses=None)
+    @extend_schema(request=PerformancePointsSerializer, responses=None)
     def post(self, request, personnel_id):
-        serializer = PointsActionSerializer(data=request.data)
+        serializer = PerformancePointsSerializer(data=request.data)
         if not serializer.is_valid():
             return error(message="Données invalides", errors=serializer.errors)
 

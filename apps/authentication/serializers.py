@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 # Serializers de cette app
 
@@ -62,9 +63,11 @@ class PersonnelSerializer(serializers.Serializer):
     email = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
 
+    @extend_schema_field(serializers.EmailField())
     def get_email(self, obj):
         return obj.utilisateur.email if obj.utilisateur else None
 
+    @extend_schema_field(serializers.CharField())
     def get_role(self, obj):
         return obj.utilisateur.role if obj.utilisateur else None
 

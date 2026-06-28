@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.produits.models import Produit
 from .models import MouvementStock
-
+from drf_spectacular.utils import extend_schema_field
 
 class ProduitSerializer(serializers.ModelSerializer):
     en_alerte = serializers.SerializerMethodField()
@@ -16,6 +16,7 @@ class ProduitSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'date_creation', 'date_modification']
 
+    @extend_schema_field(serializers.BooleanField())
     def get_en_alerte(self, obj):
         return obj.quantite_stock <= obj.seuil_alerte
 
