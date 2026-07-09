@@ -11,7 +11,7 @@ from drf_spectacular.utils import extend_schema
 from core.responses import success, error, created, not_found
 from core.permissions import EstDuTenantCourant, EstProprietaire, EstProprietaireOuEmploye
 from tenants.services import TenantService
-from tenants.serializers import TenantPublicSerializer, TenantUpdateSerializer
+from tenants.serializers import TenantPublicSerializer, TenantUpdateSerializer, TenantLicenceSerializer
 
 # Endpoints de cette app
 # ==================================================
@@ -157,6 +157,30 @@ class PersonnelDetailView(APIView):
 # =============================================================
 # 6. MON SALON
 # =============================================================
+class TenantLicenceView(APIView):
+    """
+    État de licence du tenant courant (statut, type_licence, formule,
+    date_expiration, jours_restants). Volontairement accessible à TOUS
+    les rôles authentifiés du tenant (pas seulement EstProprietaire) :
+    un employé a lui aussi besoin de savoir quels modules sont accessibles
+    pour que son menu backoffice s'adapte correctement — voir
+    useBackOfficeMenu.ts côté frontend.
+    """
+    permission_classes = [IsAuthenticated, EstDuTenantCourant]
+
+    @extend_schema(responses=TenantLicenceSerializer)
+    def get(self, request):
+        service = TenantService()
+        try:
+            tenant = service.obtenir_courant()
+            return success(
+                data=TenantLicenceSerializer(tenant).data,
+                message="État de licence du salon"
+            )
+        except ValueError as e:
+            return error(message=str(e), status_code=404)
+
+
 class MonSalonView(APIView):
     permission_classes = [IsAuthenticated, EstDuTenantCourant, EstProprietaire]
 

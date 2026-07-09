@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from core.responses import success, error, not_found
-from core.permissions import EstDuTenantCourant, EstProprietaire
+from core.permissions import EstDuTenantCourant, EstProprietaire, AccesModuleRequis
+from core.licences import MODULE_PERSONNEL
 from .services import PerformanceService
 from .serializers import (
     TransactionPerformanceSerializer, PerformancePointsSerializer,
@@ -10,7 +11,7 @@ from .serializers import (
 
 
 class PersonnelPointsAjouterView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PERSONNEL), EstProprietaire]
 
     @extend_schema(request=PerformancePointsSerializer, responses=None)
     def post(self, request, personnel_id):
@@ -35,7 +36,7 @@ class PersonnelPointsAjouterView(APIView):
 
 
 class PersonnelPointsRetirerView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PERSONNEL), EstProprietaire]
 
     @extend_schema(request=PerformancePointsSerializer, responses=None)
     def post(self, request, personnel_id):
@@ -60,7 +61,7 @@ class PersonnelPointsRetirerView(APIView):
 
 
 class PersonnelPointsHistoriqueView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PERSONNEL), EstProprietaire]
 
     @extend_schema(responses=TransactionPerformanceSerializer(many=True))
     def get(self, request, personnel_id):
@@ -76,7 +77,7 @@ class PersonnelPointsHistoriqueView(APIView):
 
 
 class PersonnelRecapitulatifView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PERSONNEL), EstProprietaire]
 
     @extend_schema(request=RecapitulatifPeriodeSerializer, responses=None)
     def post(self, request, personnel_id):
@@ -97,7 +98,7 @@ class PersonnelRecapitulatifView(APIView):
 
 
 class PersonnelRecapitulatifTousView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PERSONNEL), EstProprietaire]
 
     @extend_schema(
         request=RecapitulatifPeriodeSerializer,

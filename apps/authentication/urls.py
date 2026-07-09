@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     LoginView, InscriptionPersonnelView, 
     LogoutView, MeView, PersonnelListView, 
-    PersonnelDetailView, MonSalonView
+    PersonnelDetailView, MonSalonView, TenantLicenceView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path('personnel/', PersonnelListView.as_view(), name='personnel-list'),
     path('personnel/<int:personnel_id>/', PersonnelDetailView.as_view(), name='personnel-detail'),
     path('mon-salon/', MonSalonView.as_view(), name='mon-salon'),
+    path('tenant-licence/', TenantLicenceView.as_view(), name='tenant-licence'),
 ]

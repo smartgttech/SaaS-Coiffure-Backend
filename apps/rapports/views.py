@@ -1,14 +1,15 @@
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from core.responses import success, error
-from core.permissions import EstDuTenantCourant, EstProprietaire
+from core.permissions import EstDuTenantCourant, EstProprietaire, AccesModuleRequis
+from core.licences import MODULE_TABLEAU_BORD, MODULE_RAPPORTS_AVANCES, MODULE_SMS_MARKETING
 from .services import RapportService
 from .serializers import PeriodeSerializer, InactiviteSerializer
 from apps.caisse.serializers import PaiementSerializer
 
 
 class TableauDeBordView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_TABLEAU_BORD), EstProprietaire]
 
     @extend_schema(responses=None)
     def get(self, request):
@@ -18,7 +19,7 @@ class TableauDeBordView(APIView):
 
 
 class RapportFinancierView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_TABLEAU_BORD), EstProprietaire]
 
     @extend_schema(request=PeriodeSerializer, responses=None)
     def post(self, request):
@@ -35,7 +36,7 @@ class RapportFinancierView(APIView):
 
 
 class RapportImpayesView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_TABLEAU_BORD), EstProprietaire]
 
     @extend_schema(responses=None)
     def get(self, request):
@@ -52,7 +53,7 @@ class RapportImpayesView(APIView):
 
 
 class RapportClientsView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_RAPPORTS_AVANCES), EstProprietaire]
 
     @extend_schema(request=InactiviteSerializer, responses=None)
     def post(self, request):
@@ -68,7 +69,7 @@ class RapportClientsView(APIView):
 
 
 class RapportStockView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_RAPPORTS_AVANCES), EstProprietaire]
 
     @extend_schema(request=PeriodeSerializer, responses=None)
     def post(self, request):
@@ -85,7 +86,7 @@ class RapportStockView(APIView):
 
 
 class RapportSMSCampagneView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_SMS_MARKETING), EstProprietaire]
 
     @extend_schema(responses=None)
     def get(self, request):

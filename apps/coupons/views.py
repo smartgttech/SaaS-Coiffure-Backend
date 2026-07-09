@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from core.responses import success, error, created, not_found
-from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye, EstProprietaire
+from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye, EstProprietaire, AccesModuleRequis
+from core.licences import MODULE_COUPONS
 from .services import CouponService
 from .serializers import (
     CouponSerializer, CouponCreateSerializer,
@@ -10,7 +11,7 @@ from .serializers import (
 
 
 class CouponListCreateView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COUPONS), EstProprietaire]
 
     @extend_schema(responses=CouponSerializer(many=True))
     def get(self, request):
@@ -36,7 +37,7 @@ class CouponListCreateView(APIView):
 
 
 class CouponDetailView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COUPONS), EstProprietaire]
 
     @extend_schema(responses=CouponSerializer)
     def get(self, request, coupon_id):
@@ -58,7 +59,7 @@ class CouponDetailView(APIView):
 
 
 class CouponValiderView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COUPONS), EstProprietaireOuEmploye]
 
     @extend_schema(request=ValiderCouponSerializer, responses=None)
     def post(self, request):
@@ -79,7 +80,7 @@ class CouponValiderView(APIView):
 
 
 class CouponHistoriqueView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COUPONS), EstProprietaire]
 
     @extend_schema(responses=CouponUtilisationSerializer(many=True))
     def get(self, request, coupon_id):

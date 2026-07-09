@@ -28,3 +28,11 @@ class JournalRepository(BaseRepository):
             tenant=self.tenant,
             utilisateur_id=utilisateur_id
         )
+    
+    def liste(self, ressource=None, type_action=None):
+        qs = JournalAction.objects.filter(tenant=self.tenant)
+        if ressource:
+            qs = qs.filter(ressource=ressource)
+        if type_action:
+            qs = qs.filter(type_action=type_action)
+        return qs

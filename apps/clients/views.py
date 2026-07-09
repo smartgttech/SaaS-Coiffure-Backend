@@ -1,7 +1,10 @@
 from rest_framework.views import APIView
 from drf_spectacular .utils import extend_schema
 from core.responses import success, error, created, not_found
-from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye
+from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye, AccesModuleRequis
+from core.licences import (
+    MODULE_CLIENTS
+)
 from .services import ClienteService
 from .serializers import (
     ClienteSerializer, ClienteCreateSerializer, ClienteUpdateSerializer,
@@ -13,7 +16,7 @@ from .serializers import (
 # 1. CREATE LIST
 # ===================================
 class ClienteListCreateView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_CLIENTS) ,EstProprietaireOuEmploye]
 
     @extend_schema(responses=ClienteSerializer(many=True))
     def get(self, request):
@@ -44,7 +47,7 @@ class ClienteListCreateView(APIView):
 # 2. DETAILS & UPDATE CLIENT
 # =============================
 class ClienteDetailView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_CLIENTS) ,EstProprietaireOuEmploye]
 
     @extend_schema(responses=ClienteSerializer)
     def get(self, request, cliente_id):
@@ -82,7 +85,7 @@ class ClienteDetailView(APIView):
 # 3. POINTS FIDELITE HISTORIQUE CLIENT
 # ===================================
 class ClientePointsHistoriqueView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_CLIENTS) ,EstProprietaireOuEmploye]
 
     @extend_schema(responses=TransactionPointsSerializer(many=True))
     def get(self, request, cliente_id):
@@ -99,7 +102,7 @@ class ClientePointsHistoriqueView(APIView):
 # 4. POINTS FIDELITE AJOUTER ET RETIRER CLIENT
 # =====================================
 class ClientePointsAjouterView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_CLIENTS) ,EstProprietaireOuEmploye]
 
     @extend_schema(request=PointsActionSerializer, responses=ClienteSerializer)
     def post(self, request, cliente_id):
@@ -121,7 +124,7 @@ class ClientePointsAjouterView(APIView):
 
 
 class ClientePointsRetirerView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye, AccesModuleRequis(MODULE_CLIENTS)]
 
     @extend_schema(request=PointsActionSerializer, responses=ClienteSerializer)
     def post(self, request, cliente_id):

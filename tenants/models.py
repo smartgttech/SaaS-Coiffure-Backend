@@ -14,10 +14,10 @@ class Tenant(TenantMixin):
     sous_domaine = models.CharField(max_length=100, unique=True)
     domaine_custom = models.CharField(max_length=255, blank=True, null=True)
 
-    # Licence
+    # Licence — CADENCE DE FACTURATION (durée entre paiements)
     TYPE_LICENCE_CHOICES = [
         ('essai', 'Période d\'essai '),
-        ('Mensuel', 'Abonnement mensuel'),
+        ('mensuel', 'Abonnement mensuel'),
         ('trimestriel', 'Abonnement trimestriel'),
         ('semestriel', 'Abonnement semestriel'),
         ('annuel', 'Abonnement annuel'),
@@ -27,6 +27,26 @@ class Tenant(TenantMixin):
         max_length=30, 
         choices=TYPE_LICENCE_CHOICES, 
         default='essai'
+    )
+
+    # Formule — PALIER FONCTIONNEL (quels modules sont accessibles).
+    # Champ volontairement distinct de type_licence : la cadence de
+    # facturation et le périmètre de fonctionnalités sont deux décisions
+    # indépendantes (voir core/licences.py pour le détail des modules
+    # inclus par formule). Un tenant 'pro' peut être facturé mensuellement
+    # ou annuellement, sans que ça change les modules auxquels il accède.
+    FORMULE_CHOICES = [
+        ('essai', 'Essai — accès complet, durée limitée'),
+        ('basic', 'Basic'),
+        ('basic_plus', 'Basic+'),
+        ('pro', 'Pro'),
+        ('full', 'Full'),
+    ]
+    formule = models.CharField(
+        max_length=20,
+        choices=FORMULE_CHOICES,
+        default='essai',
+        help_text="Détermine les modules accessibles. Voir core/licences.py"
     )
     date_expiration = models.DateTimeField(blank=True, null=True)
 
@@ -41,6 +61,12 @@ class Tenant(TenantMixin):
         max_length=20, 
         choices=STATUT_CHOICES, 
         default='essai'
+    )
+    statut_avant_suspension = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="Mémorise le statut du tenant juste avant sa suspension, pour restauration fidèle."
     )
 
     # Identité visuelle
@@ -85,6 +111,16 @@ class Tenant(TenantMixin):
     telephone = models.CharField(max_length=20, blank=True, null=True)
     whatsapp = models.CharField(max_length=20, blank=True, null=True)
     email_contact = models.EmailField(blank=True, null=True)
+
+    # En prévision du multi-domain + multi_tenant
+    TYPE_CHOICES = [
+        ('beauty', 'Institut de beauté'),
+        ('coiffure', 'Salon de coiffure'),
+        ('restaurant', 'Restaurant'),
+        ('quincaillerie', 'Quincaillerie'),
+        ('hotel', 'Hôtel')
+    ]
+    type_entreprise = models.CharField(blank=True, null=True, choices=TYPE_CHOICES, default='beauty')
 
     # Horaires d'ouverture (format JSON — ex: {"lundi": "08:00-18:00", ...})
     horaires = models.JSONField(blank=True, null=True)

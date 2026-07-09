@@ -17,6 +17,14 @@ class TenantAdminRepository:
             ).get(id=tenant_id)
         except Tenant.DoesNotExist:
             return None
+        
+    def par_sous_domaine(self, sous_domaine):
+        try:
+            return Tenant.objects.exclude(
+                schema_name = 'public'
+            ).get(sous_domaine=sous_domaine)
+        except Tenant.DoesNotExist:
+            return None
 
     def par_schema(self, schema_name):
         try:
@@ -43,10 +51,19 @@ class TenantAdminRepository:
             'expires': tenants.filter(statut='expire').count(),
             'expirant_bientot': tenants.filter(
                 statut__in=['actif', 'essai'],
-                date_expiration__lte=timezone.now() + timezone.timedelta(days=7),
+                date_expiration__lte=timezone.now() + timezone.timedelta(days=25),
                 date_expiration__gte=timezone.now()
             ).count(),
         }
+    
+    def expirant_bientot(self, jours=25):
+        return Tenant.objects.exclude(
+            schema_name='public'
+        ).filter(
+            statut__in=['actif', 'essai'],
+            date_expiration__lte=timezone.now() + timezone.timedelta(days=jours),
+            date_expiration__gte=timezone.now()
+        ).order_by('date_expiration')
 
 
 class DomainAdminRepository:

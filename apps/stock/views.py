@@ -2,7 +2,8 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers as drf_serializers
 from core.responses import success, error, created, not_found
-from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye, EstProprietaire
+from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye, EstProprietaire, AccesModuleRequis
+from core.licences import MODULE_PRODUITS, MODULE_STOCK
 from .services import StockService
 from .serializers import (
     ProduitSerializer, ProduitCreateSerializer, ProduitUpdateSerializer,
@@ -15,7 +16,7 @@ class ValeurStockSerializer(drf_serializers.Serializer):
 
 
 class ProduitListCreateView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PRODUITS), EstProprietaireOuEmploye]
 
     @extend_schema(responses=ProduitSerializer(many=True))
     def get(self, request):
@@ -41,7 +42,7 @@ class ProduitListCreateView(APIView):
 
 
 class ProduitDetailView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_PRODUITS), EstProprietaireOuEmploye]
 
     @extend_schema(responses=ProduitSerializer)
     def get(self, request, produit_id):
@@ -80,7 +81,7 @@ class ProduitDetailView(APIView):
 
 
 class StockApprovisionnerView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_STOCK), EstProprietaire]
 
     @extend_schema(request=ApprovisionnerSerializer, responses=ProduitSerializer)
     def post(self, request, produit_id):
@@ -102,7 +103,7 @@ class StockApprovisionnerView(APIView):
 
 
 class StockAlertesView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_STOCK), EstProprietaireOuEmploye]
 
     @extend_schema(responses=ProduitSerializer(many=True))
     def get(self, request):
@@ -115,7 +116,7 @@ class StockAlertesView(APIView):
 
 
 class StockMouvementsView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_STOCK), EstProprietaireOuEmploye]
 
     @extend_schema(responses=MouvementStockSerializer(many=True))
     def get(self, request, produit_id=None):
@@ -128,7 +129,7 @@ class StockMouvementsView(APIView):
 
 
 class StockValeurTotaleView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaire]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_STOCK), EstProprietaire]
 
     @extend_schema(responses=ValeurStockSerializer)
     def get(self, request):

@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from core.responses import success, error, created, not_found
-from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye
+from core.permissions import EstDuTenantCourant, EstProprietaireOuEmploye, AccesModuleRequis
+from core.licences import MODULE_COMMANDES
 from .services import CommandeService
 from .serializers import (
     CommandeSerializer, CommandeCreateSerializer,
@@ -10,7 +11,7 @@ from .serializers import (
 
 
 class CommandeListCreateView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COMMANDES), EstProprietaireOuEmploye]
 
     @extend_schema(responses=CommandeSerializer(many=True))
     def get(self, request):
@@ -44,7 +45,7 @@ class CommandeListCreateView(APIView):
 
 
 class CommandeDetailView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COMMANDES), EstProprietaireOuEmploye]
 
     @extend_schema(responses=CommandeSerializer)
     def get(self, request, commande_id):
@@ -60,7 +61,7 @@ class CommandeDetailView(APIView):
 
 
 class CommandeChangerStatutView(APIView):
-    permission_classes = [EstDuTenantCourant, EstProprietaireOuEmploye]
+    permission_classes = [EstDuTenantCourant, AccesModuleRequis(MODULE_COMMANDES), EstProprietaireOuEmploye]
 
     @extend_schema(request=ChangerStatutCommandeSerializer, responses=CommandeSerializer)
     def post(self, request, commande_id):

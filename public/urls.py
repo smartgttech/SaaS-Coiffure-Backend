@@ -3,7 +3,8 @@ from .views import (
     HealthCheckView, TenantInfoView, SuperAdminTableauDeBordView,
     SuperAdminActiverView, SuperAdminDebloquerView, SuperAdminDomainCustomView,
     SuperAdminProlongerEssaiView, SuperAdminSuspendreView, SuperAdminTenantDetailView,
-    SuperAdminTenantListCreateView, SuperAdminVerifierExpirationsView
+    SuperAdminTenantListCreateView, SuperAdminVerifierExpirationsView, SuperAdminExpirantBientotView,
+    SuperAdminAjouterJoursLicenceView
 )
 
 urlpatterns = [
@@ -15,11 +16,13 @@ urlpatterns = [
     # Routes Super Admin
     path('super-admin/', SuperAdminTableauDeBordView.as_view(), name='super-admin-dashboard'),
     path('super-admin/tenants/', SuperAdminTenantListCreateView.as_view(), name='super-admin-tenants'),
-    path('super-admin/tenants/<int:tenant_id>/', SuperAdminTenantDetailView.as_view(), name='super-admin-tenant-detail'),
+    path('super-admin/tenants/verifier-expirations/', SuperAdminVerifierExpirationsView.as_view(), name='super-admin-expirations'),
+    path('super-admin/tenants/expirants-bientot/', SuperAdminExpirantBientotView.as_view(), name='super-admin-expirants-bientot'),
+    path('super-admin/tenants/<str:sous_domaine>/', SuperAdminTenantDetailView.as_view(), name='super-admin-tenant-detail'),
     path('super-admin/tenants/<int:tenant_id>/activer/', SuperAdminActiverView.as_view(), name='super-admin-activer'),
     path('super-admin/tenants/<int:tenant_id>/suspendre/', SuperAdminSuspendreView.as_view(), name='super-admin-suspendre'),
     path('super-admin/tenants/<int:tenant_id>/debloquer/', SuperAdminDebloquerView.as_view(), name='super-admin-debloquer'),
     path('super-admin/tenants/<int:tenant_id>/prolonger-essai/', SuperAdminProlongerEssaiView.as_view(), name='super-admin-prolonger'),
+    path('super-admin/tenants/<int:tenant_id>/ajouter-jours-licence/', SuperAdminAjouterJoursLicenceView.as_view(), name='super-admin-ajouter-jours-licence'),
     path('super-admin/tenants/<int:tenant_id>/domaine-custom/', SuperAdminDomainCustomView.as_view(), name='super-admin-domaine'),
-    path('super-admin/verifier-expirations/', SuperAdminVerifierExpirationsView.as_view(), name='super-admin-expirations'),
 ]

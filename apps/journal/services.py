@@ -15,3 +15,9 @@ class JournalService:
             details_avant=details_avant,
             details_apres=details_apres
         )
+    
+    def liste(self, ressource=None, type_action=None):
+        return self.repo.liste(ressource=ressource, type_action=type_action)
+
+    def historique_ressource(self, ressource, ressource_id):
+        return self.repo.historique_ressource(ressource, ressource_id)

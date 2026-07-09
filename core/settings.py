@@ -57,7 +57,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # Middleware de django-tenants pour gérer les requêtes multi-tenant
     'django_tenants.middleware.main.TenantMainMiddleware',
+    # Bloque l'accès à l'API si le tenant est suspendu ou si sa licence a expiré.
+    # Doit rester APRÈS TenantMainMiddleware (a besoin du schéma déjà résolu)
+    # et AVANT les middlewares suivants pour couper court le plus tôt possible.
+    'core.middleware.VerifierLicenceTenantMiddleware',
     # Middleware Django par défaut
+    'corsheaders.middleware.CorsMiddleware',  # ← ajouté ici
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -181,6 +186,7 @@ SHARED_APPS = [
     'rest_framework_simplejwt',  # Gestion des tokens JWT pour l'authentification
     'drf_spectacular',  # Documentation automatique des APIs
     'rest_framework_simplejwt.token_blacklist',  # ← Blacklist des tokens
+    'corsheaders',
 
     'tenants',  # Application pour gérer les tenants et leurs domaines
     'public',  # Application pour gérer les fonctionnalités publiques
@@ -221,8 +227,27 @@ SPECTACULAR_SETTINGS = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Passer à 8heures pour correspondre au CDC
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8), # Passer à 8heures pour correspondre au CDC
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+# Configuration CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://.*\.localhost:3000$",  # couvre tous les sous-domaines .localhost:3000
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'authorization',
+    'content-type',
+    'x-csrftoken',
+]

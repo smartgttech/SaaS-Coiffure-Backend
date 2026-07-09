@@ -3,7 +3,7 @@ from django.utils import timezone
 from core.responses import success, error, created, not_found
 from core.permissions import EstSuperAdmin
 from rest_framework.permissions import IsAuthenticated
-from .services import SuperAdminService
+from .services import SuperAdminService, LicenceExpireeError
 from .serializers import (
     TenantAdminSerializer, TenantCreateSerializer, ActiverLicenceSerializer,
     ProlongerEssaiSerializer, DomainCustomSerializer, StatistiquesSerializer
@@ -103,10 +103,10 @@ class SuperAdminTenantDetailView(APIView):
     permission_classes = [IsAuthenticated, EstSuperAdmin]
 
     @extend_schema(responses=TenantAdminSerializer)
-    def get(self, request, tenant_id):
+    def get(self, request, sous_domaine):
         service = SuperAdminService()
         try:
-            tenant = service.obtenir_tenant(tenant_id)
+            tenant = service.obtenir_tenant_par_sous_domaine(sous_domaine)
             return success(
                 data=TenantAdminSerializer(tenant).data,
                 message="Salon trouvé"
@@ -129,7 +129,7 @@ class SuperAdminActiverView(APIView):
             tenant = service.modifier_licence(
                 tenant_id,
                 serializer.validated_data['type_licence'],
-                serializer.validated_data['duree_jours']
+                serializer.validated_data['formule'],
             )
             return success(
                 data=TenantAdminSerializer(tenant).data,
@@ -167,6 +167,8 @@ class SuperAdminDebloquerView(APIView):
                 data=TenantAdminSerializer(tenant).data,
                 message="Salon débloqué"
             )
+        except LicenceExpireeError as e:
+            return error(message=str(e), status_code=409)
         except ValueError as e:
             return error(message=str(e), status_code=400)
 
@@ -189,6 +191,28 @@ class SuperAdminProlongerEssaiView(APIView):
             return success(
                 data=TenantAdminSerializer(tenant).data,
                 message="Période d'essai prolongée"
+            )
+        except ValueError as e:
+            return error(message=str(e), status_code=400)
+        
+class SuperAdminAjouterJoursLicenceView(APIView):
+    permission_classes = [IsAuthenticated, EstSuperAdmin]
+
+    @extend_schema(request=ProlongerEssaiSerializer, responses=TenantAdminSerializer)
+    def post(self, request, tenant_id):
+        serializer = ProlongerEssaiSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error(message="Données invalides", errors=serializer.errors)
+
+        service = SuperAdminService()
+        try:
+            tenant = service.ajouter_jours_licence(
+                tenant_id,
+                serializer.validated_data['jours_supplementaires']
+            )
+            return success(
+                data=TenantAdminSerializer(tenant).data,
+                message="Période d'activation revue à la hausse"
             )
         except ValueError as e:
             return error(message=str(e), status_code=400)
@@ -227,4 +251,17 @@ class SuperAdminVerifierExpirationsView(APIView):
         return success(
             data={'tenants_expires': count},
             message=f"{count} salon(s) suspendu(s) pour expiration"
+        )
+    
+class SuperAdminExpirantBientotView(APIView):
+    permission_classes = [IsAuthenticated, EstSuperAdmin]
+
+    @extend_schema(responses=TenantAdminSerializer(many=True))
+    def get(self, request):
+        service = SuperAdminService()
+        jours = int(request.query_params.get('jours', 25))
+        tenants = service.lister_expirant_bientot(jours=jours)
+        return success(
+            data=TenantAdminSerializer(tenants, many=True).data,
+            message="Salons expirant bientôt"
         )

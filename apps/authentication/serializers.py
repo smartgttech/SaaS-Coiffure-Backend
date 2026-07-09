@@ -29,6 +29,13 @@ class InscriptionPersonnelSerializer(serializers.Serializer):
     date_entree = serializers.DateField()
     specialite = serializers.CharField(max_length=150, required=False, allow_null=True)
 
+    def validate_password(self, value):
+        if not any(c.isupper() for c in value):
+            raise serializers.ValidationError("Le mot de passe doit contenir au moins une majuscule")
+        if not any(c.isdigit() for c in value):
+            raise serializers.ValidationError("Le mot de passe doit contenir au moins un chiffre")
+        return value
+
 # ===============================================
 # 3. DECONNEXION
 # ===============================================

@@ -65,7 +65,7 @@ class AuthService:
             if utilisateur.tentatives_echouees >= MAX_TENTATIVES:
                 utilisateur.bloque_jusqu_a = timezone.now() + timedelta(minutes=DUREE_BLOCAGE_MINUTES)
                 utilisateur.save()
-                raise ValueError("Trop de tentatives échouées. Compte bloqué pendant {int{DUREE_BLOCAGE_MINUTES}} minutes. ")
+                raise ValueError(f"Trop de tentatives échouées. Compte bloqué pendant {int(DUREE_BLOCAGE_MINUTES)} minutes. ")
         
             # Incrémentation du nombre de tentatives en cas d'identifiants incorrects et mise à jour des variables correspondantes
             utilisateur.save()

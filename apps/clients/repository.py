@@ -6,9 +6,9 @@ from .models import Cliente, TransactionPoints
 
 class ClienteRepository(BaseRepository):
     # Clientes actives
-    def list_actives(self):
+    def list_actives(self, search=None):
         return Cliente.objects.filter(tenant=self.tenant, actif=True)
-    
+
     # Cliente Par son Id
     def par_id(self, cliente_id):
         try:
