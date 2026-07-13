@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from tenants.models import Tenant
+from tenants.models import Tenant, JournalPlateforme
 from tenants.serializers import TenantPublicSerializer
 from drf_spectacular.utils import extend_schema_field
 
@@ -89,3 +89,15 @@ class StatistiquesSerializer(serializers.Serializer):
     suspendus = serializers.IntegerField()
     expires = serializers.IntegerField()
     expirant_bientot = serializers.IntegerField()
+
+
+class JournalPlateformeSerializer(serializers.ModelSerializer):
+    super_admin_email = serializers.CharField(source='super_admin.email', read_only=True)
+    tenant_nom = serializers.CharField(source='tenant.nom', read_only=True, allow_null=True)
+
+    class Meta:
+        model = JournalPlateforme
+        fields = [
+            'id', 'super_admin_email', 'tenant_nom', 'type_action',
+            'details', 'adresse_ip', 'date'
+        ]

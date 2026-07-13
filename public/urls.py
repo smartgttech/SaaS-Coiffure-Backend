@@ -4,7 +4,8 @@ from .views import (
     SuperAdminActiverView, SuperAdminDebloquerView, SuperAdminDomainCustomView,
     SuperAdminProlongerEssaiView, SuperAdminSuspendreView, SuperAdminTenantDetailView,
     SuperAdminTenantListCreateView, SuperAdminVerifierExpirationsView, SuperAdminExpirantBientotView,
-    SuperAdminAjouterJoursLicenceView
+    SuperAdminAjouterJoursLicenceView, SuperAdminImpersonnaliserView, SuperAdminJournalPlateformeView,
+    SuperAdminJournalTenantView,
 )
 
 urlpatterns = [
@@ -25,4 +26,7 @@ urlpatterns = [
     path('super-admin/tenants/<int:tenant_id>/prolonger-essai/', SuperAdminProlongerEssaiView.as_view(), name='super-admin-prolonger'),
     path('super-admin/tenants/<int:tenant_id>/ajouter-jours-licence/', SuperAdminAjouterJoursLicenceView.as_view(), name='super-admin-ajouter-jours-licence'),
     path('super-admin/tenants/<int:tenant_id>/domaine-custom/', SuperAdminDomainCustomView.as_view(), name='super-admin-domaine'),
+    path('super-admin/tenants/<str:sous_domaine>/impersonnaliser/', SuperAdminImpersonnaliserView.as_view(), name='super-admin-impersonnaliser'),
+    path('super-admin/tenants/<int:tenant_id>/journal/', SuperAdminJournalTenantView.as_view(), name='super-admin-journal-tenant'),
+    path('super-admin/journal-plateforme/', SuperAdminJournalPlateformeView.as_view(), name='super-admin-journal-plateforme'),
 ]

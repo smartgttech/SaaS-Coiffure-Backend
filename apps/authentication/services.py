@@ -2,8 +2,10 @@
 # Utilise le repository pour accéder aux données
 from rest_framework_simplejwt.tokens import RefreshToken
 from .repository import UtilisateurRepository, PersonnalRepository
+from tenants.serializers import TenantLicenceSerializer
 from datetime import timedelta
 from django.utils import timezone
+from core.tenant_context import get_current_tenant
 from apps.journal.services import JournalService
 
 MAX_TENTATIVES = 5
@@ -100,12 +102,13 @@ class AuthService:
     def obtenir_profil(self, utilisateur):
         """
         Retourne les informations du profil de l'utilisateur connecté,
-        en allant chercher son profil personnel si disponible.
+        en allant chercher son profil personnel si disponible, ainsi que
+        les informations de licence du tenant courant (nécessaires au
+        frontend pour le gating de modules et le blocage suspendu/expiré).
         """
-
         personnel = self.personnel_repo.par_utilisateur(utilisateur)
 
-        return { 
+        profil = {
             'id': utilisateur.id,
             'email': utilisateur.email,
             'role': utilisateur.role,
@@ -113,6 +116,17 @@ class AuthService:
             'nom': personnel.nom if personnel else None,
             'prenom': personnel.prenom if personnel else None,
         }
+
+        # Le super_admin n'est rattaché à aucun tenant particulier (il gère
+        # tous les tenants depuis le schéma public) — pas de licence à exposer.
+        if utilisateur.role == 'super_admin':
+            return profil
+
+        tenant = get_current_tenant()
+        if tenant:
+            profil.update(TenantLicenceSerializer(tenant).data)
+
+        return profil
     
 
 class PersonnelService:

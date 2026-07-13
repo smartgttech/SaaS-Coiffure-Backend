@@ -41,10 +41,13 @@ def _reponse_bloquee(message: str, status_code: int, code: str):
 #   de chargement infini côté frontend sans explication.
 # - Documentation API : utile en debug, sans risque (lecture de schéma OpenAPI).
 CHEMINS_EXEMPTES = (
+    '/api/auth/tenant-licence',
+    '/api/auth/me',
     '/api/auth/login',
     '/api/auth/refresh',
     '/api/schema',
     '/api/docs',
+    '/api/salon',
 )
 
 

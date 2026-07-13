@@ -2,10 +2,18 @@ from django.utils import timezone
 from datetime import timedelta
 from tenants.models import Tenant
 from django.db import transaction, connection
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import AccessToken
 from django.conf import settings
 from django_tenants.utils import schema_context
 from .repository import TenantAdminRepository, DomainAdminRepository
 from dateutil.relativedelta import relativedelta
+from core.journal_mixin import journaliser_action
+
+from tenants.models import JournalImpersonnalisation
+from tenants.journal_service import JournalPlateformeService
+
+User = get_user_model()
 
 
 class SuperAdminService:
@@ -84,6 +92,7 @@ class SuperAdminService:
                 statut='actif',
             )
 
+    @journaliser_action('creation_tenant')
     def creer_tenant(self, data, utilisateur=None):
         schema_name = data['sous_domaine'].lower().replace('-', '_')
         domain_principal = f"{data['sous_domaine']}.monsaas.cm"
@@ -167,6 +176,7 @@ class SuperAdminService:
     # (Une fonction `activer()` dupliquée existait ici sans jamais être
     # appelée nulle part — supprimée pour éviter la confusion.)
 
+    @journaliser_action('suspension')
     def suspendre(self, tenant_id):
         tenant = self.obtenir_tenant(tenant_id)
         if tenant.statut == 'suspendu':
@@ -177,6 +187,7 @@ class SuperAdminService:
         tenant.save()
         return tenant
 
+    @journaliser_action('reactivation')
     def debloquer(self, tenant_id):
         tenant = self.obtenir_tenant(tenant_id)
         if tenant.statut != 'suspendu':
@@ -192,6 +203,7 @@ class SuperAdminService:
         tenant.save()
         return tenant
 
+    @journaliser_action('prolongation_essai')
     def prolonger_essai(self, tenant_id, jours_supplementaires):
         """
         Usage : Super Admin accorde plus de temps à un prospect.
@@ -216,7 +228,7 @@ class SuperAdminService:
         })
         return tenant
 
-
+    @journaliser_action('ajout__jours_licence')
     def ajouter_jours_licence(self, tenant_id, jours_supplementaires):
         """
         Usage : geste commercial, compensation panne, ajustement manuel.
@@ -243,6 +255,7 @@ class SuperAdminService:
         })
         return tenant
 
+    @journaliser_action('activer_licence')
     def modifier_licence(self, tenant_id, type_licence, formule):
         tenant = self.obtenir_tenant(tenant_id)
         nouvelle_expiration = self._calculer_date_expiration(type_licence)
@@ -254,6 +267,7 @@ class SuperAdminService:
         })
         return tenant
 
+    @journaliser_action('domaine_custom')
     def associer_domaine_custom(self, tenant_id, domaine_custom):
         tenant = self.obtenir_tenant(tenant_id)
 
@@ -298,3 +312,52 @@ class SuperAdminService:
 class LicenceExpireeError(Exception):
     """Levée quand une réactivation est refusée car la licence a expiré."""
     pass
+
+
+# IMPERSONNALISATION
+class ImpersonnalisationService:
+
+    def impersonnaliser(self, super_admin, tenant_domaine, request):
+        try:
+            tenant = Tenant.objects.get(sous_domaine=tenant_domaine)
+        except Tenant.DoesNotExist:
+            raise ValueError("Tenant introuvable.")
+
+        if tenant.statut in ['suspendu', 'expire']:
+            raise ValueError(
+                "Impossible d'accéder au backoffice d'un tenant suspendu ou expiré."
+            )
+
+        try:
+            proprietaire = User.objects.get(tenant=tenant, role='proprietaire')
+        except User.DoesNotExist:
+            raise ValueError("Aucune propriétaire trouvée pour ce tenant.")
+
+        token = AccessToken.for_user(proprietaire)
+        token.set_exp(lifetime=timedelta(hours=2))
+        token['impersonnalisation'] = True
+        token['super_admin_id'] = super_admin.id
+
+        ip = JournalPlateformeService._extraire_ip(request)
+        JournalImpersonnalisation.objects.create(
+            super_admin=super_admin,
+            tenant=tenant,
+            proprietaire_email=proprietaire.email,
+            adresse_ip=ip,
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+
+        JournalPlateformeService.enregistrer(
+            super_admin=super_admin,
+            type_action='impersonnalisation',
+            tenant=tenant,
+            details={'proprietaire_email': proprietaire.email},
+            request=request
+        )
+
+        return {
+            'access': str(token),
+            'tenant_sous_domaine': tenant.sous_domaine,
+            'tenant_nom': tenant.nom,
+            'proprietaire_email': proprietaire.email,
+        }

@@ -1,5 +1,6 @@
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
+from django.conf import settings
 
 # Create your models here.
 
@@ -153,3 +154,88 @@ class Domain(DomainMixin):
     class Meta:
         verbose_name = "Domaine"
         verbose_name_plural = "Domaines"
+
+
+# =====================================================
+# 3. MODELE JOURNALISATION ACTIONS - Super Admin
+# =====================================================
+
+class JournalPlateforme(models.Model):
+    """
+    Trace les actions du Super Admin sur la plateforme.
+    Vit exclusivement dans le schéma public.
+    """
+    TYPE_ACTIONS = [
+        ('impersonnalisation', 'Accès support (impersonnalisation)'),
+        ('consultation_journal', 'Consultation du journal d\'un tenant'),
+        ('creation_tenant', 'Création tenant'),
+        ('suspension', 'Suspension tenant'),
+        ('reactivation', 'Réactivation tenant'),
+        ('activation_licence', 'Activation licence'),
+        ('prolongation_essai', 'Prolongation essai'),
+        ('ajout_jours_licence', 'Ajout de jours licence'),
+        ('domaine_custom', 'Association domaine custom'),
+    ]
+
+    super_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='journal_plateforme'
+    )
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='journal_plateforme',
+        null=True,
+        blank=True
+    )
+    type_action = models.CharField(max_length=50, choices=TYPE_ACTIONS)
+    details = models.JSONField(null=True, blank=True)
+    adresse_ip = models.GenericIPAddressField(null=True, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Journal plateforme"
+        verbose_name_plural = "Journal plateforme"
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.type_action} — {self.super_admin} — {self.date}"
+    
+
+
+# =====================================================
+# 4. MODELE JOURNALISATION ACTIONS - impersonnalisation
+# =====================================================
+
+
+class JournalImpersonnalisation(models.Model):
+    """
+    Table dédiée à l'historique des sessions d'impersonnalisation,
+    séparée du journal générique pour un accès rapide depuis la page
+    détail d'un tenant (CDC section 3.11 et 8.5).
+    """
+    super_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='impersonnalisations'
+    )
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='journaux_impersonnalisation'
+    )
+    proprietaire_email = models.EmailField()
+    date_acces = models.DateTimeField(auto_now_add=True)
+    adresse_ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Session d'impersonnalisation"
+        verbose_name_plural = "Sessions d'impersonnalisation"
+        ordering = ['-date_acces']
+
+    def __str__(self):
+        return f"{self.super_admin} → {self.tenant.nom} le {self.date_acces}"

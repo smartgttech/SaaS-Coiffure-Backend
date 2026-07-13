@@ -8,6 +8,9 @@ from .serializers import (
     TenantAdminSerializer, TenantCreateSerializer, ActiverLicenceSerializer,
     ProlongerEssaiSerializer, DomainCustomSerializer, StatistiquesSerializer
 )
+from tenants.models import Tenant
+from tenants.journal_service import JournalPlateformeService
+from .services import ImpersonnalisationService
 from tenants.services import TenantService
 from tenants.serializers import TenantPublicSerializer
 from drf_spectacular.utils import extend_schema
@@ -265,3 +268,66 @@ class SuperAdminExpirantBientotView(APIView):
             data=TenantAdminSerializer(tenants, many=True).data,
             message="Salons expirant bientôt"
         )
+    
+
+class SuperAdminImpersonnaliserView(APIView):
+    permission_classes = [IsAuthenticated, EstSuperAdmin]
+
+    @extend_schema(responses=None)
+    def post(self, request, sous_domaine):
+        service = ImpersonnalisationService()
+        try:
+            resultat = service.impersonnaliser(request.user, sous_domaine, request)
+            return success(data=resultat, message="Accès support activé")
+        except ValueError as e:
+            return error(message=str(e), status_code=400)
+
+
+class SuperAdminJournalTenantView(APIView):
+    permission_classes = [IsAuthenticated, EstSuperAdmin]
+
+    def get(self, request, tenant_id):
+        try:
+            tenant = Tenant.objects.get(id=tenant_id)
+        except Tenant.DoesNotExist:
+            return error(message="Tenant introuvable.", status_code=404)
+
+        JournalPlateformeService.enregistrer(
+            super_admin=request.user,
+            type_action='consultation_journal',
+            tenant=tenant,
+            details={
+                'ressource': request.query_params.get('ressource'),
+                'type_action': request.query_params.get('type_action'),
+            },
+            request=request
+        )
+
+        data = JournalPlateformeService.lire_journal_tenant(
+            tenant=tenant,
+            ressource=request.query_params.get('ressource'),
+            type_action=request.query_params.get('type_action'),
+        )
+        return success(data=data, message=f"Journal de {tenant.nom}")
+
+
+class SuperAdminJournalPlateformeView(APIView):
+    """Journal des actions du Super Admin lui-même — traçabilité globale."""
+    permission_classes = [IsAuthenticated, EstSuperAdmin]
+
+    def get(self, request):
+        from tenants.models import JournalPlateforme
+        from .serializers import JournalPlateformeSerializer
+
+        tenant_id = request.query_params.get('tenant_id')
+        type_action = request.query_params.get('type_action')
+
+        tenant = None
+        if tenant_id:
+            tenant = Tenant.objects.filter(id=tenant_id).first()
+
+        actions = JournalPlateformeService.liste_plateforme(
+            tenant=tenant,
+            type_action=type_action
+        )
+        return success(data=JournalPlateformeSerializer(actions, many=True).data)
